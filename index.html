@@ -1,1 +1,196 @@
-hellllo
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChocoDoku — Gestor y Generador de Sudokus Editoriales</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <h1>🍫 ChocoDoku</h1>
+            <span class="version-badge">v1.0.0</span>
+        </div>
+        <div class="global-status-bar">
+            <div id="master-status" class="status-indicator success">Master: Vol-01 (0 regs)</div>
+            <div id="index-status" class="status-indicator success">Índice Global Activo</div>
+            <div id="pending-changes-badge" class="status-indicator neutral">Sin cambios pendientes</div>
+        </div>
+    </header>
+
+    <nav class="app-nav">
+        <button class="nav-btn active" data-target="view-generator">Generator</button>
+        <button class="nav-btn" data-target="view-checker">Checker & Reviewer</button>
+        <button class="nav-btn" data-target="view-exporter">Exporter</button>
+        <button class="nav-btn" data-target="view-data">Masters & Data</button>
+    </nav>
+
+    <main class="app-main">
+        <!-- VISTA 1: GENERATOR -->
+        <section id="view-generator" class="view-section active">
+            <h2>Generador de Lotes de Sudoku</h2>
+            <p class="section-desc">Configura los parámetros para generar nuevos candidatos de Sudoku 9×9 con solución única y dificultad lógica verificada.</p>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Configuración de Lote</h3>
+                    <form id="generator-form">
+                        <div class="form-group">
+                            <label for="gen-collection">Colección:</label>
+                            <input type="text" id="gen-collection" value="ChocoDoku Volumen 1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gen-volume">Volumen:</label>
+                            <input type="text" id="gen-volume" value="Vol-01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gen-seed">Seed Opcional (Reproducible):</label>
+                            <input type="text" id="gen-seed" placeholder="Ej. 12345 (Vacío para aleatorio)">
+                        </div>
+
+                        <fieldset class="difficulty-fieldset">
+                            <legend>Cantidades por Dificultad (Meta Inicial: 100 c/u, Total: 400)</legend>
+                            <div class="diff-input-group">
+                                <label for="qty-easy">Easy:</label>
+                                <input type="number" id="qty-easy" value="100" min="0" max="1000">
+                            </div>
+                            <div class="diff-input-group">
+                                <label for="qty-medium">Medium:</label>
+                                <input type="number" id="qty-medium" value="100" min="0" max="1000">
+                            </div>
+                            <div class="diff-input-group">
+                                <label for="qty-hard">Hard:</label>
+                                <input type="number" id="qty-hard" value="100" min="0" max="1000">
+                            </div>
+                            <div class="diff-input-group">
+                                <label for="qty-expert">Expert:</label>
+                                <input type="number" id="qty-expert" value="100" min="0" max="1000">
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" id="btn-start-generation" class="btn primary">Iniciar Generación de Lote</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Progreso y Resultados del Lote</h3>
+                    <div id="generation-progress-area" class="output-area">
+                        <p class="placeholder-text">Haz clic en "Iniciar Generación" para comenzar el proceso por lotes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 2: CHECKER & REVIEWER -->
+        <section id="view-checker" class="view-section">
+            <h2>Administrador y Revisor de Registros</h2>
+            <p class="section-desc">Filtra, revisa, valida y explora los puzzles en el Master activo.</p>
+
+            <div class="filter-bar">
+                <input type="text" id="filter-id" placeholder="Buscar por ID...">
+                <select id="filter-difficulty">
+                    <option value="">Todas las dificultades</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                    <option value="Expert">Expert</option>
+                </select>
+                <select id="filter-status">
+                    <option value="">Todos los estados</option>
+                    <option value="candidate">Candidate</option>
+                    <option value="validated">Validated</option>
+                    <option value="reserved">Reserved</option>
+                    <option value="published">Published</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div class="checker-container">
+                <div class="table-wrapper">
+                    <table class="data-table" id="puzzles-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Colección / Vol</th>
+                                <th>Dificultad</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="empty-row">No hay registros cargados. Usa el Generador o importa un Master.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="detail-panel">
+                    <h3>Detalle del Puzzle</h3>
+                    <div id="puzzle-preview-grid" class="sudoku-preview-placeholder">
+                        <p class="placeholder-text">Selecciona "Ver Detalle" en cualquier registro para visualizar la cuadrícula 9×9 y su solución.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: EXPORTER -->
+        <section id="view-exporter" class="view-section">
+            <h2>Exportador Editorial (InDesign / KDP)</h2>
+            <p class="section-desc">Prepara y exporta colecciones en formatos JSON y CSV optimizados para Adobe InDesign y Amazon KDP.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Opciones de Exportación</h3>
+                    <div class="form-group">
+                        <label for="export-format">Formato de Salida:</label>
+                        <select id="export-format">
+                            <option value="indesign-grid">CSV InDesign Desplegado (C1..C81 - Celda por Celda)</option>
+                            <option value="indesign-rows">CSV InDesign por Filas (Row 1 a Row 9)</option>
+                            <option value="json">Master JSON Completo</option>
+                            <option value="csv-puzzles">CSV Básico (Solo Cadena Puzzle)</option>
+                            <option value="csv-solutions">CSV Básico (Solo Cadena Solución)</option>
+                            <option value="manifest">Manifiesto Editorial (Metadatos/Estadísticas)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcance de Exportación:</label>
+                        <label><input type="radio" name="export-scope" value="filtered" checked> Filtrados actuales de la tabla</label>
+                        <br>
+                        <label><input type="radio" name="export-scope" value="all"> Todo el volumen activo</label>
+                    </div>
+                    <button id="btn-execute-export" class="btn primary">Generar y Descargar Archivo</button>
+                </div>
+                <div class="card">
+                    <h3>Información de Exportación</h3>
+                    <div class="output-area">
+                        <p><strong>Recomendación para InDesign:</strong> Usar la opción <em>CSV InDesign Desplegado (C1..C81)</em> junto con el script <code>ImportSudokuToInDesign.jsx</code> para rellenar tus tablas prediseñadas automáticamente.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 4: MASTERS & DATA -->
+        <section id="view-data" class="view-section">
+            <h2>Gestión de Masters e Índice Global</h2>
+            <p class="section-desc">Importa y exporta archivos JSON de volúmenes independientes y reconstruye el índice global de duplicados.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Importar Master JSON</h3>
+                    <input type="file" id="import-master-file" accept=".json">
+                    <p class="help-text">Carga un archivo Master JSON previo para restaurar una colección.</p>
+                </div>
+                <div class="card">
+                    <h3>Índice Global de Duplicados</h3>
+                    <button class="btn secondary" id="btn-rebuild-index">Reconstruir Índice desde Master Activo</button>
+                    <p class="help-text">Sincroniza el mapa de duplicados celda por celda con los registros actuales.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Script de entrada de módulos ES -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
