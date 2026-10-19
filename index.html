@@ -10,7 +10,7 @@
     <header class="app-header">
         <div class="logo-area">
             <h1>🍫 ChocoDoku</h1>
-            <span class="version-badge">v1.0.0</span>
+            <span class="version-badge">v1.1.0</span>
         </div>
         <div class="global-status-bar">
             <div id="master-status" class="status-indicator success">Master: Vol-01 (0 regs)</div>
@@ -106,7 +106,7 @@
                 </select>
             </div>
 
-            <div class="checker-container">
+            <div class="checker-container" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="table-wrapper">
                     <table class="data-table" id="puzzles-table">
                         <thead>
@@ -126,9 +126,9 @@
                     </table>
                 </div>
                 <div class="detail-panel">
-                    <h3>Detalle del Puzzle</h3>
-                    <div id="puzzle-preview-grid" class="sudoku-preview-placeholder">
-                        <p class="placeholder-text">Selecciona "Ver Detalle" en cualquier registro para visualizar la cuadrícula 9×9 y su solución.</p>
+                    <h3>Detalle del Puzzle (Vista Dual)</h3>
+                    <div id="puzzle-preview-grid" class="sudoku-preview-placeholder" style="height: auto; min-height: 320px; padding: 1rem;">
+                        <p class="placeholder-text">Selecciona "Ver Detalle" en cualquier registro para visualizar el tablero de juego y la solución lado a lado.</p>
                     </div>
                 </div>
             </div>
