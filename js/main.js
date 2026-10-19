@@ -1,18 +1,18 @@
 /**
  * ChocoDoku - main.js
- * Coordinador principal, manejo de eventos de UI y sincronización de módulos.
+ * Coordinador principal, manejo de eventos de UI, paginación y sincronización de módulos.
  */
 
 import { getActiveMaster, importMasterJSON } from './data-manager.js';
 import { rebuildGlobalIndexFromMasters } from './duplicate-index.js';
 import { generateBatch } from './generator.js';
-import { getPaginatedRecords, setFilters, renderSudokuPreview } from './reviewer.js';
+import { getPaginatedRecords, setFilters, setPage, renderSudokuDualPreview } from './reviewer.js';
 import { generateExportFile } from './exporter.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🍫 ChocoDoku inicializado correctamente.");
 
-    // --- 1. NAVEGACIÓN ENTRE VISTAS (PESTAÑAS) ---
+    // --- 1. NAVEGACIÓN ENTRE VISTAS ---
     const navButtons = document.querySelectorAll('.nav-btn');
     const viewSections = document.querySelectorAll('.view-section');
 
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 2. GESTIÓN DE DATOS Y MASTERS ---
+    // --- 2. MASTERS Y DATOS ---
     const importMasterInput = document.getElementById('import-master-file');
     if (importMasterInput) {
         importMasterInput.addEventListener('change', (e) => {
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. EVENTO DE GENERACIÓN POR LOTES ---
+    // --- 3. GENERADOR ---
     const generatorForm = document.getElementById('generator-form');
     const btnStartGen = document.getElementById('btn-start-generation');
 
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 4. CHECKER & REVIEWER (FILTROS) ---
+    // --- 4. CHECKER & REVIEWER (FILTROS Y PAGINACIÓN) ---
     const filterIdInput = document.getElementById('filter-id');
     const filterDifficultySelect = document.getElementById('filter-difficulty');
     const filterStatusSelect = document.getElementById('filter-status');
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterDifficultySelect) filterDifficultySelect.addEventListener('change', triggerFilterUpdate);
     if (filterStatusSelect) filterStatusSelect.addEventListener('change', triggerFilterUpdate);
 
-    // --- 5. EXPORTER (DESCARGA DE ARCHIVOS) ---
+    // --- 5. EXPORTER ---
     const exportBtn = document.getElementById('btn-execute-export');
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
@@ -181,10 +181,11 @@ function refreshReviewerTable() {
     const tbody = document.querySelector('#puzzles-table tbody');
     if (!tbody) return;
 
-    const { records } = getPaginatedRecords();
+    const { records, totalPages, currentPage, totalFiltered } = getPaginatedRecords();
 
     if (records.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="empty-row">No se encontraron registros. Genera un lote primero.</td></tr>`;
+        renderPaginationControls(0, 1, 1);
         return;
     }
 
@@ -202,10 +203,55 @@ function refreshReviewerTable() {
         tr.querySelector('.view-detail-btn').addEventListener('click', () => {
             const previewArea = document.getElementById('puzzle-preview-grid');
             previewArea.innerHTML = '';
-            const gridEl = renderSudokuPreview(rec.puzzle, rec.solution);
-            previewArea.appendChild(gridEl);
+            const dualEl = renderSudokuDualPreview(rec.puzzle, rec.solution);
+            previewArea.appendChild(dualEl);
         });
 
         tbody.appendChild(tr);
     });
+
+    renderPaginationControls(totalFiltered, currentPage, totalPages);
+}
+
+function renderPaginationControls(totalFiltered, currentPage, totalPages) {
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (!tableWrapper) return;
+
+    let pagContainer = document.getElementById('pagination-controls');
+    if (!pagContainer) {
+        pagContainer = document.createElement('div');
+        pagContainer.id = 'pagination-controls';
+        pagContainer.style.display = 'flex';
+        pagContainer.style.justifyContent = 'space-between';
+        pagContainer.style.alignItems = 'center';
+        pagContainer.style.padding = '0.75rem 1rem';
+        pagContainer.style.borderTop = '1px solid #d7ccc8';
+        pagContainer.style.backgroundColor = '#fafafa';
+        tableWrapper.appendChild(pagContainer);
+    }
+
+    pagContainer.innerHTML = `
+        <span style="font-size: 0.85rem; color: #6e584f;">Total: <strong>${totalFiltered}</strong> registros (Pág ${currentPage} de ${totalPages})</span>
+        <div style="display: flex; gap: 0.5rem;">
+            <button id="btn-prev-page" class="btn secondary btn-sm" ${currentPage <= 1 ? 'disabled' : ''}>Anterior</button>
+            <button id="btn-next-page" class="btn secondary btn-sm" ${currentPage >= totalPages ? 'disabled' : ''}>Siguiente</button>
+        </div>
+    `;
+
+    const btnPrev = document.getElementById('btn-prev-page');
+    const btnNext = document.getElementById('btn-next-page');
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            setPage(currentPage - 1);
+            refreshReviewerTable();
+        });
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            setPage(currentPage + 1);
+            refreshReviewerTable();
+        });
+    }
 }
